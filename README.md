@@ -32,7 +32,7 @@ record.sequenceNumber;
 record.partitionKey;
 ```
 
-Note that the data is Base64-encoded.
+Note that the `data` is Base64-encoded.
 
 In the basic sample, the function `processRecords` has code that shows how a worker can access the record's data, sequence number, and partition key.
 
@@ -47,6 +47,31 @@ Record processors do not need to call `checkpoint` on each call to `processRecor
 You can optionally specify the exact sequence number of a record as a parameter to `checkpoint`. In this case, the KCL assumes that all records have been processed up to that record only.
 
 The basic sample application shows the simplest possible call to the `checkpointer.checkpoint` function. You can add other checkpointing logic you need for your consumer at this point in the function.
+
+In `processRecords(processRecordsInput, completeCallback)` we call `processRecord` for each record being consumed.
+
+```js
+  processRecords(processRecordsInput, completeCallback) {
+      // ...
+      for (record of records) {
+        // process each incoming record from kinesis stream
+        this.processRecord(record)
+      }
+      // ...
+      // call completeCallback
+  }
+
+  processRecord(record) {
+    createRecordProcessor().process(record)
+  }
+
+  createRecordProcessor() {
+    return new this.RecordProcessor(this.options)
+  }
+```
+
+To customize record processing, simply pass a `RecordProcessor` class in options.
+You can subclass the default `RecordProcessor` in `lib/consumer/record-processor` to suit your needs
 
 #### shutdown
 
