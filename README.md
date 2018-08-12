@@ -1,8 +1,16 @@
 # seneca-kinesis-transport
 
-Kinesis transport module for seneca.
+Kinesis transport module for [senecaJS](senecajs.org/)
 
-## Implement the Record Processor
+## AWS kinesis node client
+
+The following goes through how to use the kinesis node client supplied by AWS.
+This might be too raw (low level) for use with SenecaJS.
+
+We then briefly touch on a more suitable alternative (wrapper) library [kinesis](https://github.com/mhart/kinesis) which looks like a much better fit.
+This would need to be used with pattern matching using [patrun](https://www.npmjs.com/package/patrun)
+
+### Implement the Record Processor
 
 The simplest possible consumer using the KCL for Node.js must implement a recordProcessor function, which in turn contains the functions `initialize`, `processRecords`, and `shutdown`.
 
@@ -12,7 +20,7 @@ The KCL calls the `initialize` function when the record processor starts. This r
 
 This is because Kinesis Data Streams has at least once semantics, meaning that every data record from a shard is processed at least one time by a worker in your consumer. For more information about cases in which a particular shard might be processed by more than one worker, see Resharding, Scaling, and Parallel Processing.
 
-### processRecords
+#### processRecords
 
 The KCL calls this function with input that contains a list of data records from the shard specified to the `initialize` function. The record processor that you implement processes the data in these records according to the semantics of your consumer. For example, the worker might perform a transformation on the data and then store the result in an _Amazon Simple Storage Service_ (Amazon S3) bucket.
 
@@ -40,7 +48,7 @@ You can optionally specify the exact sequence number of a record as a parameter 
 
 The basic sample application shows the simplest possible call to the `checkpointer.checkpoint` function. You can add other checkpointing logic you need for your consumer at this point in the function.
 
-### shutdown
+#### shutdown
 
 The KCL calls the `shutdown` function either when processing ends (`shutdownInput.reason` is `TERMINATE`) or the worker is no longer responding (`shutdownInput.reason` is `ZOMBIE`).
 
@@ -48,7 +56,7 @@ Processing ends when the record processor does not receive any further records f
 
 The KCL also passes a `shutdownInput.checkpointer` object to shutdown. If the shutdown reason is `TERMINATE`, you should make sure that the record processor has finished processing any data records, and then call the checkpoint function on this interface.
 
-## AWS Credentials
+### AWS Credentials
 
 See [DefaultAWSCredentialsProviderChain](https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/DefaultAWSCredentialsProviderChain.html)
 
@@ -62,7 +70,7 @@ AWS credentials provider chain that looks for credentials in this order:
 
 The `sample/consumer/sample.properties` file contains sample values.
 
-## Setup Kinesis
+### Setup Kinesis
 
 Set the following process environment variables in your run environment:
 
@@ -78,6 +86,96 @@ AWS_KINESIS_WAIT_SECS = 5;
 ```
 
 See [AWS kinesis-client-nodejs basic sample](https://github.com/awslabs/amazon-kinesis-client-nodejs/blob/master/samples/basic_sample)
+
+## Alternative simpler node kinesis
+
+See [kinesis](https://github.com/mhart/kinesis) node library
+
+```js
+var fs = require("fs"),
+  Transform = require("stream").Transform,
+  kinesis = require("kinesis"),
+  KinesisStream = kinesis.KinesisStream;
+
+// Uses credentials from process.env by default
+
+kinesis.listStreams({ region: "us-west-1" }, function(err, streams) {
+  if (err) throw err;
+
+  console.log(streams);
+  // ["http-logs", "click-logs"]
+});
+
+var kinesisSink = kinesis.stream("http-logs");
+// OR new KinesisStream('http-logs')
+
+fs.createReadStream("http.log").pipe(kinesisSink);
+
+var kinesisSource = kinesis.stream({ name: "click-logs", oldest: true });
+
+// Data is retrieved as Record objects, so let's transform into Buffers
+var bufferify = new Transform({ objectMode: true });
+bufferify._transform = function(record, encoding, cb) {
+  cb(null, record.Data);
+};
+
+kinesisSource.pipe(bufferify).pipe(fs.createWriteStream("click.log"));
+
+// Create a new Kinesis stream using the raw API
+kinesis.request("CreateStream", { StreamName: "test", ShardCount: 2 }, function(
+  err
+) {
+  if (err) throw err;
+
+  kinesis.request("DescribeStream", { StreamName: "test" }, function(
+    err,
+    data
+  ) {
+    if (err) throw err;
+
+    console.dir(data);
+  });
+});
+```
+
+Obviously we should maintain data as records and not use buffers!
+
+See [kinesis API](https://github.com/mhart/kinesis#api) for usage details.
+
+We would then just need to match on the incoming `data` on `{ kind: 'act' }` and pass it onto seneca. This is how it is done in [kafka transport](https://github.com/tecla5/seneca-kafka-transport/blob/master/kafka-transport.js#L16)
+
+```js
+var handlerFn = function(req, res) {
+  seneca.act(req.request.act, function(err, result) {
+    var outmsg = {
+      kind: "res",
+      id: req.request.id,
+      err: err ? err.message : null,
+      res: result
+    };
+    res.respond(outmsg);
+  });
+};
+listenBus.run(
+  [{ group: options.kafka.group, topicName: options.kafka.requestTopic }],
+  [{ match: { kind: "act" }, execute: handlerFn }],
+  function(err) {
+    if (err) {
+      return console.log(err);
+    }
+    seneca.log.info("listen", args.host, args.port, seneca.toString());
+    done();
+  }
+);
+```
+
+Looks like we need to match on the data using [patrun](https://www.npmjs.com/package/patrun) just like [microbial](https://www.npmjs.com/package/microbial) does.
+
+```js
+const pm = patrun().add({ kind: "act" }, executeFn);
+const msgHandler = pm.find(data);
+if (handler) handler(data);
+```
 
 ## create a request topic
 
