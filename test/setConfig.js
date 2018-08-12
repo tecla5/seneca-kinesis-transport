@@ -1,6 +1,9 @@
 'use strict';
 
-var options = {
+const kcl = require('kinesis-client-library')
+const Consumer = require('../lib/consumer')
+
+const options = {
   namespace: 'seneca',
   start: 'config'
 };
@@ -16,29 +19,17 @@ const config = {
   }
 };
 
-
-const kcl = require('kinesis-client-library')
 const client = kcl(options).run()
 
 client.setup(function (err) {
   if (!err || (err && err.name && err.name === 'config_block_not_available')) {
     console.log('updating config');
-    // var config = mcb.blankConfig();
-
-    kcl(recordProcessor()).run();
-
-    mcb.addBrokerToConfig(config, 'localhost', 9092, 2000000);
-    mcb.addTopicToConfig(config, 'request', 'queue', 3, 'roundRobin');
-    mcb.addTopicToConfig(config, 'response', 'queue', 3, 'direct');
+    const consumer = new Consumer(options)
+    kcl(consumer).run();
 
     console.log(JSON.stringify(config, null, 2));
-    mcb.writeConfig(config, function (err) {
-      mcb.tearDown();
-      if (err) {
-        console.log(err);
-      }
-      console.log('done');
-    });
+
+    // TODO...
   } else {
     console.log(err);
   }
