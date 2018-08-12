@@ -11,8 +11,7 @@ seneca
       requestTopic: 'request',
       responseTopic: 'response'
     },
-    microbial: {
-      zkroot: 'localhost:2181',
+    client: {
       namespace: 'seneca',
       start: 'all'
     }

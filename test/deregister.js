@@ -1,7 +1,6 @@
 'use strict';
 
 var options = {
-  zkroot: 'localhost:2181',
   namespace: 'seneca',
   start: 'config'
 };

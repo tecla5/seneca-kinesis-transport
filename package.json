@@ -1,8 +1,8 @@
 {
-  "name": "seneca-kafka-transport",
-  "version": "0.2.5",
-  "description": "Seneca Kafka transport",
-  "main": "kafka-transport.js",
+  "name": "seneca-kinesis-transport",
+  "version": "0.1.0",
+  "description": "Seneca Kinesis transport",
+  "main": "lib/kinesis-transport.js",
   "scripts": {
     "test": "node_modules/.bin/mocha test/*.test.js"
   },
@@ -18,8 +18,9 @@
   "author": "Richard Rodger (http://richardrodger.com)",
   "license": "MIT",
   "dependencies": {
+    "aws-sdk": "^2.291.0",
     "kinesis-client-library": "^0.3.6",
-    "microbial": "x",
+    "log4js": "^3.0.4",
     "nid": "^0.3.2",
     "underscore": "^1.8.3",
     "uuid": "~1.4.1"

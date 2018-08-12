@@ -1,17 +1,32 @@
 'use strict';
 
 var options = {
-  zkroot: 'localhost:2181',
   namespace: 'seneca',
   start: 'config'
 };
 
-var mcb = require('microbial')(options);
+const config = {
+  kinesis: {
+    region: process.env.AWS_KINESIS_REGION || 'us-east-1'
+  },
+  producer: {
+    stream: process.env.AWS_KINESIS_TOPIC || 'seneca-default-topic',
+    shards: process.env.AWS_KINESIS_SHARDS || 2,
+    waitBetweenDescribeCallsInSeconds: process.env.AWS_KINESIS_WAIT_SECS || 5
+  }
+};
 
-mcb.setup(function (err) {
+
+const kcl = require('kinesis-client-library')
+const client = kcl(options).run()
+
+client.setup(function (err) {
   if (!err || (err && err.name && err.name === 'config_block_not_available')) {
     console.log('updating config');
-    var config = mcb.blankConfig();
+    // var config = mcb.blankConfig();
+
+    kcl(recordProcessor()).run();
+
     mcb.addBrokerToConfig(config, 'localhost', 9092, 2000000);
     mcb.addTopicToConfig(config, 'request', 'queue', 3, 'roundRobin');
     mcb.addTopicToConfig(config, 'response', 'queue', 3, 'direct');
