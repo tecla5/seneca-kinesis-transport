@@ -1,0 +1,35 @@
+{
+  "name": "seneca-kafka-transport",
+  "version": "0.2.5",
+  "description": "Seneca Kafka transport",
+  "main": "kafka-transport.js",
+  "scripts": {
+    "test": "node_modules/.bin/mocha test/*.test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/rjrodger/seneca-kafka-transport.git"
+  },
+  "keywords": [
+    "seneca",
+    "transport",
+    "plugin"
+  ],
+  "author": "Richard Rodger (http://richardrodger.com)",
+  "license": "MIT",
+  "dependencies": {
+    "kinesis-client-library": "^0.3.6",
+    "microbial": "x",
+    "nid": "^0.3.2",
+    "underscore": "^1.8.3",
+    "uuid": "~1.4.1"
+  },
+  "peerDependencies": {
+    "seneca": "*"
+  },
+  "devDependencies": {
+    "mocha": "x",
+    "seneca": "x",
+    "chai": "x"
+  }
+}
