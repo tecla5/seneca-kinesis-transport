@@ -25,11 +25,10 @@
     "underscore": "^1.8.3",
     "uuid": "~1.4.1",
     "patrun": "^1.0.0",
-    "kinesis": "^1.2.2",
     "seneca": "^3.7.0"
   },
   "devDependencies": {
-    "mocha": "x",
-    "chai": "x"
+    "lab": "^15.5.0",
+    "code": "^5.2.0"
   }
 }

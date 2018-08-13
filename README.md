@@ -2,6 +2,8 @@
 
 Kinesis transport module for [senecaJS](senecajs.org/)
 
+Based on [seneca-rabbitmq-transport](https://github.com/senecajs-labs/seneca-rabbitmq-transport/blob/master/rabbitmq-transport.js) using best practices as outlined in [Writing Your Own Seneca Transport](https://github.com/senecajs/seneca-transport#writing-your-own-transport)
+
 ## AWS kinesis node client
 
 The following goes through how to use the kinesis node client supplied by AWS.
@@ -105,125 +107,16 @@ The defaults used are the following:
 
 ```js
 AWS_KINESIS_REGION = "us-east-1";
-AWS_KINESIS_TOPIC = "seneca-default-topic";
 AWS_KINESIS_SHARDS = 2;
-AWS_KINESIS_WAIT_SECS = 5;
 ```
 
 See [AWS kinesis-client-nodejs basic sample](https://github.com/awslabs/amazon-kinesis-client-nodejs/blob/master/samples/basic_sample)
 
-In Kinesis we use `ack` (inbound actions) and `res` (outbound responses) stream partitions as required for implementing custom Seneca transports
+In Kinesis we use `ack` (inbound actions) and `res` (outbound responses) stream partitions as required (recommended) for implementing custom Seneca transports.
 
-We need to match on inbound actions (in consumer) using [patrun](https://www.npmjs.com/package/patrun) just like [microbial](https://github.com/pelger/microbial/blob/master/lib/kernel/executor.js#L40) does.
+## Usage
 
-Here the most important microbial code extracts we can (or are) reusing to some extent in the `SenecaBus` class.
-
-```js
-var load = function(services) {
-  assert(services);
-
-  if (_.isArray(services)) {
-    _.each(services, function(service) {
-      _pr.add(service.match, service.execute);
-    });
-  } else {
-    _pr.add(services.match, services.execute);
-  }
-};
-```
-
-Which takes a run function of the following form:
-
-```js
-var run = function(topics, services, cb) {
-  if (!_setupDone) {
-    setup(function(err) {
-      if (err) {
-        return cb(err);
-      }
-      engage(topics, services, cb);
-    });
-  } else {
-    engage(topics, services, cb);
-  }
-};
-```
-
-`run` uses `engage` to register topics to listen to and services to match and trigger
-
-```js
-var engage = function(topics, services, cb) {
-  if (!_.isArray(topics)) {
-    topics = [topics];
-  }
-
-  registerTopics(0, topics, function(err) {
-    if (err) {
-      return cb(err);
-    }
-    load(services);
-    cb(null);
-  });
-};
-```
-
-## Patrun matcher and activator
-
-We have currently implemented it like this in the `SenecaBus`.
-Note: We should likely extract this handler logic as a dedicated class.
-
-```js
-  matchAndExecute() {
-    const data = this.data
-    const execute = this.pm.find(data);
-    execute && execute(data);
-  }
-
-  // Add an action function to be called when inbound messages match the pattern.
-  // http://senecajs.org/api/#method-add
-
-  // Add an action for pattern a:1 using an object to define the pattern.
-  // .add({a: 1}, function (msg, reply) {
-  //   reply({z: msg.z})
-  // })
-  execute() {
-    const data = this.data
-    seneca.act(data, this.act)
-  }
-
-  // default act handler
-  // http://senecajs.org/api/#method-act
-  // Send a message and receive a response via the callback. If there is no callback the message is asynchronous.
-  act(err, data) {
-    err ? console.error(err) : console.log(data)
-  }
-```
-
-We could also look at [pc-seneca-kafka-transport](https://www.npmjs.com/package/pc-seneca-kafka-transport) for inspiration
-
-## create a request topic
-
-TODO
-
-```
-
-```
-
-## create a reponse topic
-
-TODO
-
-```
-
-```
-
-## run tests
-
-Step into the `test` folder
-
-`seneca-kinesis-transport $ cd test`
-
-Run the tests
+See `test` folder for some experimental setup and testing (stolen from kafka transport code base)
 
 ### Support
 
