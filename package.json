@@ -8,14 +8,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/rjrodger/seneca-kafka-transport.git"
+    "url": "git://github.com/tecla5/seneca-kinesis-transport.git"
   },
   "keywords": [
     "seneca",
     "transport",
     "plugin"
   ],
-  "author": "Richard Rodger (http://richardrodger.com)",
+  "author": "Kristian Mandrup (http://tecla5.site)",
   "license": "MIT",
   "dependencies": {
     "aws-sdk": "^2.291.0",
@@ -23,14 +23,13 @@
     "log4js": "^3.0.4",
     "nid": "^0.3.2",
     "underscore": "^1.8.3",
-    "uuid": "~1.4.1"
-  },
-  "peerDependencies": {
-    "seneca": "*"
+    "uuid": "~1.4.1",
+    "patrun": "^1.0.0",
+    "kinesis": "^1.2.2",
+    "seneca": "^3.7.0"
   },
   "devDependencies": {
     "mocha": "x",
-    "seneca": "x",
     "chai": "x"
   }
 }
