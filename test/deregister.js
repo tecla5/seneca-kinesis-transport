@@ -1,8 +1,7 @@
 'use strict';
 
 var options = {
-  namespace: 'seneca',
-  start: 'config'
+  stream: 'seneca'
 };
 
 var mcb = require('microbial')(options);

@@ -112,38 +112,11 @@ AWS_KINESIS_WAIT_SECS = 5;
 
 See [AWS kinesis-client-nodejs basic sample](https://github.com/awslabs/amazon-kinesis-client-nodejs/blob/master/samples/basic_sample)
 
-We need to match on the incoming `data` on `{ kind: 'act' }` and pass it onto seneca. This is how it is done in [kafka transport](https://github.com/tecla5/seneca-kafka-transport/blob/master/kafka-transport.js#L16)
+In Kinesis we use `ack` (inbound actions) and `res` (outbound responses) stream partitions as required for implementing custom Seneca transports
 
-```js
-var handlerFn = function(req, res) {
-  seneca.act(req.request.act, function(err, result) {
-    var outmsg = {
-      kind: "res",
-      id: req.request.id,
-      err: err ? err.message : null,
-      res: result
-    };
-    res.respond(outmsg);
-  });
-};
-listenBus.run(
-  [{ group: options.kafka.group, topicName: options.kafka.requestTopic }],
-  [{ match: { kind: "act" }, execute: handlerFn }],
-  function(err) {
-    if (err) {
-      return console.log(err);
-    }
-    seneca.log.info("listen", args.host, args.port, seneca.toString());
-    done();
-  }
-);
-```
+We need to match on inbound actions (in consumer) using [patrun](https://www.npmjs.com/package/patrun) just like [microbial](https://github.com/pelger/microbial/blob/master/lib/kernel/executor.js#L40) does.
 
-Kinesis does not seem to support req/res as does microbial/kafka.
-
-We need to match on the data using [patrun](https://www.npmjs.com/package/patrun) just like [microbial](https://github.com/pelger/microbial/blob/master/lib/kernel/executor.js#L40) does.
-
-Here the most important microbial code extracts we can (or are) reusing to some extent.
+Here the most important microbial code extracts we can (or are) reusing to some extent in the `SenecaBus` class.
 
 ```js
 var load = function(services) {
@@ -196,7 +169,7 @@ var engage = function(topics, services, cb) {
 
 ## Patrun matcher and activator
 
-We have currently implemented it like this in the `RecordProcessor`.
+We have currently implemented it like this in the `SenecaBus`.
 Note: We should likely extract this handler logic as a dedicated class.
 
 ```js

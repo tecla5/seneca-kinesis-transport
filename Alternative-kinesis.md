@@ -1,6 +1,7 @@
 # Alternative kinesis libraries
 
-See [kinesis](https://github.com/mhart/kinesis) node library
+The [kinesis](https://github.com/mhart/kinesis) node library could be used as an alternative!?
+Abstracts away a lot of the complexity of kinesis, however is not using AWS Kinesis but is merely a "kinesis simulation".
 
 ```js
 var fs = require("fs"),
