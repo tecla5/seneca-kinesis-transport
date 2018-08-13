@@ -4,13 +4,31 @@ Kinesis transport module for [senecaJS](senecajs.org/)
 
 Based on [seneca-rabbitmq-transport](https://github.com/senecajs-labs/seneca-rabbitmq-transport/blob/master/rabbitmq-transport.js) using best practices as outlined in [Writing Your Own Seneca Transport](https://github.com/senecajs/seneca-transport#writing-your-own-transport)
 
+- `lib` contains library files for kinesis seneca transport
+
+## Kinesis seneca transport
+
+### Consumer
+
+The `lib/consumer` folder, contains a `Consumer` class used to consume a Kinesis stream of records. It delegates record processing to a `RecordProcessor` instance, initialized with the record being consumed.
+
+### Producer
+
+The `lib/producer` folder, contains a `Producer` class which delegates "running" to a `Runner` class which can put new records on the stream.
+
+### Utils
+
+The `util` folder contains an AWS default configuration in `config` and a `logger` configuration, using `log4js` library.
+
+### Kinesis Seneca transport plugin
+
+The `lib/kinesis` folder, contains `client` and a `listener` hook methods, used to register as seneca transport plugins. They both use a `Stream` class that encapsulates a `Producer` and `Consumer` instance. The `Stream` exposes methods used by client and listener that are delegated to Consumer and Producer respectively, acting as a facade (higher level API).
+
 ## AWS kinesis node client
 
 The following goes through how to use the kinesis node client supplied by AWS.
-This might be too raw (low level) for use with SenecaJS.
 
-We then briefly touch on a more suitable alternative (wrapper) library [kinesis](https://github.com/mhart/kinesis) which looks like a much better fit.
-This would need to be used with pattern matching using [patrun](https://www.npmjs.com/package/patrun)
+- `sample` folder contains a basic sample of a kinesis node client with a producer and consumer.
 
 ### Implement the Record Processor
 
@@ -114,10 +132,16 @@ See [AWS kinesis-client-nodejs basic sample](https://github.com/awslabs/amazon-k
 
 In Kinesis we use `ack` (inbound actions) and `res` (outbound responses) stream partitions as required (recommended) for implementing custom Seneca transports.
 
-## Usage
+## Usage and test
 
-See `test` folder for some experimental setup and testing (stolen from kafka transport code base)
+See `test` folder for some basic tests.
 
-### Support
+## Notice
 
-TODO
+Still a WIP and not tested on AWS Kinesis yet. Mainly been investigating best practices and core architecture to be used. Looking good now ;)
+
+Please help out!
+
+### License
+
+MIT
