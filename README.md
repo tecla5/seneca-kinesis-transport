@@ -226,6 +226,8 @@ Note: We should likely extract this handler logic as a dedicated class.
   }
 ```
 
+We could also look at [pc-seneca-kafka-transport](https://www.npmjs.com/package/pc-seneca-kafka-transport) for inspiration
+
 ## create a request topic
 
 TODO
