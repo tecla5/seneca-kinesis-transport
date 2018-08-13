@@ -20,15 +20,12 @@
   "dependencies": {
     "aws-sdk": "^2.291.0",
     "kinesis-client-library": "^0.3.6",
-    "log4js": "^3.0.4",
-    "nid": "^0.3.2",
-    "underscore": "^1.8.3",
-    "uuid": "~1.4.1",
-    "patrun": "^1.0.0",
-    "seneca": "^3.7.0"
+    "log4js": "^3.0.4"
+
   },
   "devDependencies": {
     "lab": "^15.5.0",
-    "code": "^5.2.0"
+    "code": "^5.2.0",
+    "seneca": "^3.7.0"
   }
 }
