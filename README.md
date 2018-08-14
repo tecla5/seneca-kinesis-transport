@@ -24,6 +24,41 @@ The `util` folder contains an AWS default configuration in `config` and a `logge
 
 The `lib/kinesis` folder, contains `client` and a `listener` hook methods, used to register as seneca transport plugins. They both use a `Stream` class that encapsulates a `Producer` and `Consumer` instance. The `Stream` exposes methods used by client and listener that are delegated to Consumer and Producer respectively, acting as a facade (higher level API).
 
+### Stream
+
+You can subclass `Stream` and customize it to better suit your needs, then pass a `Stream` options pointing to your class.
+
+```js
+const Stream = require("seneca-kinesis-transport/lib/kinesis/stream");
+const Producer = require("seneca-kinesis-transport/lib/producer");
+
+class SpecialProducer extends Producer {
+  // custom producer logic
+}
+
+class SpecialStream extends Stream {
+  // use custom producer
+  createProducer(options) {
+    return new SpecialProducer(options);
+  }
+}
+```
+
+To use this new `Stream`, simply pass it as a transport option:
+
+```js
+const seneca = require("seneca");
+seneca({
+  transport: {
+    kinesis: {
+      Stream: SpecialStream
+    }
+  }
+})
+  // assumes installation of seneca-kinesis-transport
+  .use("kinesis-transport");
+```
+
 ## AWS kinesis node client
 
 The following goes through how to use the kinesis node client supplied by AWS.
