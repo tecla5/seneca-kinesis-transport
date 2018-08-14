@@ -6,6 +6,8 @@ Based on [seneca-rabbitmq-transport](https://github.com/senecajs-labs/seneca-rab
 
 - `lib` contains library files for kinesis seneca transport
 
+Uses [aws-kcl](https://github.com/awslabs/amazon-kinesis-client-nodejs) the kinesis client for nodejs from [AWS labs](https://github.com/awslabs).
+
 ## Kinesis seneca transport
 
 ### Consumer
@@ -67,19 +69,21 @@ The following goes through how to use the kinesis node client supplied by AWS.
 
 ### Implement the Record Processor
 
-The simplest possible consumer using the KCL for Node.js must implement a recordProcessor function, which in turn contains the functions `initialize`, `processRecords`, and `shutdown`.
+The following is from [Developing a Kinesis Client Library Consumer in Node.js](https://docs.aws.amazon.com/streams/latest/dev/kinesis-record-processor-implementation-app-nodejs.html)
+
+The simplest possible consumer using the KCL for Node.js must implement a `recordProcessor` function, which in turn contains the functions `initialize`, `processRecords`, and `shutdown`.
 
 The sample app provides an implementation that you can use as a starting point.
 
 The KCL calls the `initialize` function when the record processor starts. This record processor processes only the shard ID passed as `initializeInput.shardId`, and typically, the reverse is also true (this shard is processed only by this record processor). However, your consumer should account for the possibility that a data record might be processed more than one time.
 
-This is because Kinesis Data Streams has at least once semantics, meaning that every data record from a shard is processed at least one time by a worker in your consumer. For more information about cases in which a particular shard might be processed by more than one worker, see Resharding, Scaling, and Parallel Processing.
+This is because _Kinesis Data Streams_ has at least once semantics, meaning that every data record from a shard is processed at least one time by a worker in your consumer. For more information about cases in which a particular shard might be processed by more than one worker, see _Resharding_, _Scaling_, and _Parallel Processing_.
 
 #### processRecords
 
-The KCL calls this function with input that contains a list of data records from the shard specified to the `initialize` function. The record processor that you implement processes the data in these records according to the semantics of your consumer. For example, the worker might perform a transformation on the data and then store the result in an _Amazon Simple Storage Service_ (Amazon S3) bucket.
+The _KCL_ calls this function with input that contains a list of data records from the shard specified to the `initialize` function. The record processor that you implement processes the data in these records according to the semantics of your consumer. For example, the worker might perform a transformation on the data and then store the result in an _Amazon Simple Storage Service_ (Amazon S3) bucket.
 
-In addition to the data itself, the record also contains a sequence number and partition key, which the worker can use when processing the data. For example, the worker could choose the S3 bucket in which to store the data based on the value of the partition key. The record dictionary exposes the following key-value pairs to access the record's data, sequence number, and partition key:
+In addition to the data itself, the record also contains a sequence number and partition key, which the worker can use when processing the data. For example, the worker could choose the _S3_ bucket in which to store the data based on the value of the partition key. The record dictionary exposes the following key-value pairs to access the record's data, sequence number, and partition key:
 
 ```js
 record.data;
@@ -91,15 +95,15 @@ Note that the `data` is Base64-encoded.
 
 In the basic sample, the function `processRecords` has code that shows how a worker can access the record's data, sequence number, and partition key.
 
-_Kinesis Data Streams_ requires the record processor to keep track of the records that have already been processed in a shard. The KCL takes care of this tracking for with a checkpointer object passed as `processRecordsInput.checkpointer`. Your record processor calls the `checkpointer.checkpoint` function to inform the KCL how far it has progressed in processing the records in the shard. In the event that the worker fails, the KCL uses this information when you restart the processing of the shard so that it continues from the last known processed record.
+_Kinesis Data Streams_ requires the record processor to keep track of the records that have already been processed in a shard. The _KCL_ takes care of this tracking for with a checkpointer object passed as `processRecordsInput.checkpointer`. Your record processor calls the `checkpointer.checkpoint` function to inform the _KCL_ how far it has progressed in processing the records in the shard. In the event that the worker fails, the KCL uses this information when you restart the processing of the shard so that it continues from the last known processed record.
 
-For a split or merge operation, the KCL doesn't start processing the new shards until the processors for the original shards have called `checkpoint` to signal that all processing on the original shards is complete.
+For a split or merge operation, the _KCL_ doesn't start processing the new shards until the processors for the original shards have called `checkpoint` to signal that all processing on the original shards is complete.
 
 If you don't pass the sequence number to the `checkpoint` function, the KCL assumes that the call to `checkpoint` means that all records have been processed, up to the last record that was passed to the record processor. Therefore, the record processor should call `checkpoint` only after it has processed all the records in the list that was passed to it.
 
 Record processors do not need to call `checkpoint` on each call to `processRecords`. A processor could, for example, call `checkpoint` on every third call, or some event external to your record processor, such as a custom verification/validation service you've implemented.
 
-You can optionally specify the exact sequence number of a record as a parameter to `checkpoint`. In this case, the KCL assumes that all records have been processed up to that record only.
+You can optionally specify the exact sequence number of a record as a parameter to `checkpoint`. In this case, the _KCL_ assumes that all records have been processed up to that record only.
 
 The basic sample application shows the simplest possible call to the `checkpointer.checkpoint` function. You can add other checkpointing logic you need for your consumer at this point in the function.
 
@@ -165,7 +169,7 @@ AWS_KINESIS_SHARDS = 2;
 
 See [AWS kinesis-client-nodejs basic sample](https://github.com/awslabs/amazon-kinesis-client-nodejs/blob/master/samples/basic_sample)
 
-In Kinesis we use `ack` (inbound actions) and `res` (outbound responses) stream partitions as required (recommended) for implementing custom Seneca transports.
+In Kinesis we use `ack` (inbound actions) and `res` (outbound responses) stream partitions as required/recommended for implementing custom SenecaJS transports.
 
 ## Usage and test
 

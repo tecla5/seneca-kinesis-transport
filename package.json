@@ -19,7 +19,7 @@
   "license": "MIT",
   "dependencies": {
     "aws-sdk": "^2.291.0",
-    "kinesis-client-library": "^0.3.6",
+    "aws-kcl": "^0.7.0",
     "log4js": "^3.0.4"
   },
   "devDependencies": {
